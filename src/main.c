@@ -142,12 +142,12 @@ void* cache_alloc(Cache* cache) {
     // The Slab was free before, lets move it to partial since we allocated something
     if(slab->free++ == 0) {
         list_remove(&slab->list);
-        list_append(&cache->partial, &slab->list);
+        list_append(&slab->list, &cache->partial);
     }
     // The Slab was paritally filled, but now is full, lets move it to the full linked list
     if(slab->free == cache->objs_per_slab) {
         list_remove(&slab->list);
-        list_append(&cache->full, &slab->list);
+        list_append(&slab->list, &cache->full);
     }
     cache->inuse++;
     return ptr;
@@ -186,11 +186,11 @@ static bool cache_dealloc_within(Cache* cache, Slab* slab, void* p) {
             assert(slab->free);
             if(slab->free-- == cache->objs_per_slab) {
                 list_remove(&slab->list);
-                list_append(&cache->partial, &slab->list);
+                list_append(&slab->list, &cache->partial);
             }
             if(slab->free == 0) {
                 list_remove(&slab->list);
-                list_append(&cache->free, &slab->list);
+                list_append(&slab->list, &cache->free);
             }
             size_t index = slab_ptr_to_index(cache, slab, p);
             slab_bufctl(slab)[slab->free]=index;
